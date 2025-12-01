@@ -54,7 +54,7 @@ pub fn _silver_star() {
 pub fn _gold_star() {
     println!("Solving day 1...");
 
-    let testfile_name: &str = "./src/day01/test.csv";
+    let testfile_name: &str = "./src/day01/input.csv";
     const starting_point: i32 = 50;
     const max_num: i32 = 100;
 
@@ -76,7 +76,7 @@ pub fn _gold_star() {
     for p in parsed {
         let mut prerunner: i32 = runner;
         if p.0 == Direction::LEFT {
-            runner = (runner - p.1).rem_euclid(max_num);
+            runner = wrap_calc(prerunner - p.1, max_num);
             let wraps = (prerunner - p.1).div_euclid(max_num).abs();
 
             println!("{:?} - {:?} -> {:?} [{:?}]", prerunner, p.1, prerunner - p.1 < 0, runner);
@@ -89,7 +89,7 @@ pub fn _gold_star() {
                 }
             }
         }else{
-            runner = (runner - p.1).rem_euclid(max_num);
+            runner =  wrap_calc(prerunner + p.1, max_num);
             let wraps = (prerunner + p.1).div_euclid(max_num).abs();
             
             println!("{:?} + {:?} -> {:?} [{:?}]", prerunner, p.1, prerunner + p.1 >= max_num, runner);
@@ -123,4 +123,14 @@ pub fn parse(input: String) -> (Direction, i32) {
 
 
     return (dir, clicks);
+}
+
+
+pub fn wrap_calc(num: i32, m: i32) -> i32 {
+    let mut otimes = 0;
+    if num < 0 {
+        otimes = (-num / m) + 1;
+    }
+
+    return (num + m * otimes) % m;
 }
