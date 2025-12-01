@@ -1,65 +1,16 @@
-use std::error::Error;
-use csv::Reader;
+mod dial;
+use dial::Dial;
+use dial::Direction;
 
 use crate::util;
 
-#[derive(Debug, PartialEq, Eq)]
-enum Direction {
-    LEFT,
-    RIGHT
-}
 
 pub fn solve() {
-    _silver_star();
-    _gold_star();
-}
-
-pub fn _silver_star() {
-    println!("Solving day 1...");
-
-    let testfile_name: &str = "./src/day01/test.csv";
-    const starting_point: i32 = 50;
-    const max_num: i32 = 100;
-
-    let mut runner: i32 = starting_point;
-    let mut counter: i32 = 0;
-
-    let mut input: Vec<Vec<String>> = Vec::new();
-    let mut parsed: Vec<(Direction, i32)> = Vec::new();
-    util::csv::parse_csv_file(testfile_name.to_string(), &mut input);
-
-    for v in input {
-        for e in v {
-            let calc = parse(e);
-
-            parsed.push(calc);
-        }
-    }
-
-    for p in parsed {
-        if p.0 == Direction::LEFT {
-            runner = ((runner - p.1) + max_num) % max_num
-        }else{
-            runner = ((runner + p.1) + max_num) % max_num
-        }
-
-        if runner == 0 {
-            counter = counter + 1;
-        }
-    }
-
-    println!("Silver: Found zero {:?} times...", counter);
-}
-
-pub fn _gold_star() {
     println!("Solving day 1...");
 
     let testfile_name: &str = "./src/day01/input.csv";
-    const starting_point: i32 = 50;
-    const max_num: i32 = 100;
-
-    let mut runner: i32 = starting_point;
-    let mut counter: i32 = 0;
+    const STARTING_POINT: i32 = 50;
+    const MAX_NUM: i32 = 99;
 
     let mut input: Vec<Vec<String>> = Vec::new();
     let mut parsed: Vec<(Direction, i32)> = Vec::new();
@@ -73,42 +24,32 @@ pub fn _gold_star() {
         }
     }
 
-    for p in parsed {
-        let mut prerunner: i32 = runner;
-        if p.0 == Direction::LEFT {
-            runner = wrap_calc(prerunner - p.1, max_num);
-            let wraps = (prerunner - p.1).div_euclid(max_num).abs();
+    let mut dial: dial::Dial =  Dial::new(MAX_NUM, STARTING_POINT);
+    
+    _silver_star(&mut dial, &parsed);
+    dial.reset();
+    _gold_star(&mut dial, &parsed);
+}
 
-            println!("{:?} - {:?} -> {:?} [{:?}]", prerunner, p.1, prerunner - p.1 < 0, runner);
-            if prerunner - p.1 < 0 && runner != 0 && prerunner != 0 {
-                println!("w: {:?}", wraps);
-                if wraps == 0 {
-                    counter = counter + 1;
-                }else {
-                    counter = counter + wraps;
-                }
-            }
-        }else{
-            runner =  wrap_calc(prerunner + p.1, max_num);
-            let wraps = (prerunner + p.1).div_euclid(max_num).abs();
-            
-            println!("{:?} + {:?} -> {:?} [{:?}]", prerunner, p.1, prerunner + p.1 >= max_num, runner);
-            if prerunner + p.1 >= max_num && runner != 0 && prerunner != 0 {
-                println!("w: {:?}", wraps);
-                if wraps == 0 {
-                    counter = counter + 1;
-                }else {
-                    counter = counter + wraps;
-                }
-            }
-        }
-
-        if runner == 0 {
-            counter = counter + 1;
-        }
+pub fn _silver_star(dial: &mut Dial, instructions: &Vec<(Direction, i32)>) {
+    println!("\tSolving silver star...");
+    for inst in instructions {
+        dial.print();
+        dial.turn(&inst.0, inst.1);
     }
+    dial.print();
 
-    println!("Gold Star: Found zero {:?} times...", counter);
+    println!("\tZeros hit: {:?}", dial.zeros_hit);
+}
+pub fn _gold_star(dial: &mut Dial, instructions: &Vec<(Direction, i32)>) {
+    println!("\tSolving gold star...");
+    for inst in instructions {
+        dial.print();
+        dial.turn_with_overflowcalc(&inst.0, inst.1);
+    }
+    dial.print();
+
+    println!("\tZeros hit: {:?}", dial.zeros_hit);
 }
 
 pub fn parse(input: String) -> (Direction, i32) {
@@ -123,14 +64,4 @@ pub fn parse(input: String) -> (Direction, i32) {
 
 
     return (dir, clicks);
-}
-
-
-pub fn wrap_calc(num: i32, m: i32) -> i32 {
-    let mut otimes = 0;
-    if num < 0 {
-        otimes = (-num / m) + 1;
-    }
-
-    return (num + m * otimes) % m;
 }
