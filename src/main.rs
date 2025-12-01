@@ -5,7 +5,7 @@
 
 
 // Day selector
-const DAYTOEXECUTE: i8 = -1;
+const DAYTOEXECUTE: i8 = 1;
 
 // Add the day modules here...
 mod day01;
